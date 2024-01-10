@@ -1,7 +1,7 @@
 import React from 'react'
 import AllPRoducts from '../components/AllPRoducts'
 
-const Home = () => {
+const Product = () => {
   return (
     <div>
       <AllPRoducts/>
@@ -9,4 +9,4 @@ const Home = () => {
   )
 }
 
-export default Home
+export default Product

@@ -37,7 +37,7 @@ const Button = styled.button`
 `;
 
 const Task = () => {
-  const [tasks, setTasks] = useState();
+  const [tasks, setTasks] = useState(null);
 
   useEffect(() => {
     const getData = async () => {
@@ -59,15 +59,27 @@ const Task = () => {
       console.log(err);
     }
   };
+  const handleToggleCompletion = (taskId) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(updatedTasks);
+  };
+
   return (
     <div>
       <ul>
         {tasks &&
           tasks.map((task, index) => (
             <List key={index}>
+              {console.log(task.completed)}
               <ListId>{index + 1}</ListId>
               <ListName>{task.todo}</ListName>
-              <input type="checkbox" />
+              <input
+                type="checkbox"
+                checked={task.completed}
+                onChange={() => handleToggleCompletion(task.id)}
+              />
               <Button onClick={() => handleDelete(task.id)}>Delete</Button>
             </List>
           ))}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 
@@ -28,32 +28,27 @@ const FormBtn = styled.button`
 `;
 
 function AddTask() {
+  const formText= useRef()
   const [formData, setFormData] = useState({
     todo: "",
     userId: 1,
   });
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const newTasks = {
+      todo: formText.current.value,
+      completed: false,
+    };
     try {
-      const response = await axios.post(
+      const newTask = await axios.post(
         "https://dummyjson.com/todos/add",
         formData
       );
-      console.log("POST response:", response.data);
+      console.log("POST response:", newTasks);
 
-      setFormData({
-        todo: "",
-        userId: 1,
-      });
+      setFormData(newTasks);
+      formText.current.value = ""
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -61,7 +56,7 @@ function AddTask() {
 
   return (
     <Form onSubmit={handleSubmit}>
-      <FormInput type="text" />
+      <FormInput type="text" ref={formText}/>
       <FormBtn type="submit">Add</FormBtn>
     </Form>
   );

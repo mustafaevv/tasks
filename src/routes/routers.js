@@ -8,8 +8,12 @@ const routers = [
     path: "/todo",
   },
   {
-    name: "About",
-    path: "/about",
+    name: "search product",
+    path: "/search-product",
+  },
+  {
+    name: "Login",
+    path: "/login",
   },
 ];
 
