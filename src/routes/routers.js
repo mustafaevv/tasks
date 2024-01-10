@@ -12,6 +12,10 @@ const routers = [
     path: "/search-product",
   },
   {
+    name: "users",
+    path: "/users",
+  },
+  {
     name: "Login",
     path: "/login",
   },

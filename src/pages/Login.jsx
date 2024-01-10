@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import styled from "styled-components";
 
 const LoginFormContainer = styled.div`
@@ -41,51 +41,76 @@ const FormButton = styled.button`
   cursor: pointer;
 `;
 
-const Login = () => {
-  const initialFormData = {
-    username: "",
-    password: "",
-  };
-  const [formData, setFormData] = useState(initialFormData);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(
-      `Log in. Username: ${formData.username} Password: ${formData.password}`
-    );
-    setFormData(initialFormData);
-  };
+const Login = () => {
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Reset error message when credentials change
+    setError(null);
+  }, [credentials]);
 
   const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id]: value,
-    }));
+    const { name, value } = e.target;
+    setCredentials((prevCredentials) => ({ ...prevCredentials, [name]: value }));
+  };
+
+  const handleLogin = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('https://dummyjson.com/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+      // Handle successful login (e.g., store user token, navigate to next page)
+      console.log('Login successful:', data);
+    } catch (error) {
+      setError('Invalid credentials. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <LoginFormContainer>
-      <LoginForm onSubmit={handleSubmit}>
-        <FormLabel htmlFor="username">Username:</FormLabel>
-        <FormInput
-          type="text"
-          id="username"
-          value={formData.username}
-          onChange={handleInputChange}
-        />
-
-        <FormLabel htmlFor="password">Password:</FormLabel>
-        <FormInput
-          type="password"
-          id="password"
-          value={formData.password}
-          onChange={handleInputChange}
-        />
-
-        <FormButton type="submit">Login</FormButton>
-      </LoginForm>
-    </LoginFormContainer>
+    <div>
+      <h2>Login</h2>
+      <div>
+        <label>
+          Username:
+          <input
+            type="text"
+            name="username"
+            value={credentials.username}
+            onChange={handleInputChange}
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          Password:
+          <input
+            type="password"
+            name="password"
+            value={credentials.password}
+            onChange={handleInputChange}
+          />
+        </label>
+      </div>
+      <button onClick={handleLogin} disabled={isLoading}>
+        {isLoading ? 'Logging in...' : 'Login'}
+      </button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
   );
 };
 

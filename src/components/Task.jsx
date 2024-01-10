@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
 import styled from "styled-components";
+
+import useCrud from "../hook/useCrud";
 
 const List = styled.li`
   display: flex;
@@ -37,50 +37,46 @@ const Button = styled.button`
 `;
 
 const Task = () => {
-  const [tasks, setTasks] = useState(null);
-
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const res = await axios("https://dummyjson.com/todos");
-        setTasks(res.data.todos);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    getData();
-  }, []);
-
-  const handleDelete = async (id) => {
+  const baseUrl = "https://dummyjson.com/todos";
+  const { data, loading, error, setData, createItem, updateItem, deleteItem } =
+    useCrud(baseUrl);
+  const handleToggleCompletion = async (taskId) => {
     try {
-      await axios.delete(`https://dummyjson.com/todos/${id}`);
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-    } catch (err) {
-      console.log(err);
+      const updatedTodos = data.todos.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      );
+
+      await updateItem(taskId, { todos: updatedTodos });
+      console.log(updatedTodos);
+      setData((prevData) => ({ ...prevData, todos: updatedTodos }));
+    } catch (error) {
+      console.error("Toggle completion error:", error);
     }
   };
-  const handleToggleCompletion = (taskId) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
+
+  const handleDelete = async (taskId) => {
+    try {
+      await deleteItem(taskId);
+      console.log("deleted task " + taskId);
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
   };
 
   return (
     <div>
       <ul>
-        {tasks &&
-          tasks.map((task, index) => (
+        {data.todos &&
+          data.todos.map((task, index) => (
             <List key={index}>
-              {console.log(task.completed)}
               <ListId>{index + 1}</ListId>
               <ListName>{task.todo}</ListName>
               <input
                 type="checkbox"
                 checked={task.completed}
-                onChange={() => handleToggleCompletion(task.id)}
+                onChange={() => handleToggleCompletion(`${task.id}`)}
               />
-              <Button onClick={() => handleDelete(task.id)}>Delete</Button>
+              <Button onClick={() => handleDelete(`${task.id}`)}>Delete</Button>
             </List>
           ))}
       </ul>

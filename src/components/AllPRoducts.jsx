@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import styled from "styled-components";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 
 import Title from "./Title";
+import useCrud from "../hook/useCrud";
 
 const Content = styled.div`
   display: flex;
@@ -71,29 +72,26 @@ const SearchInput = styled.input`
 `;
 
 const AllPRoducts = () => {
-  const [data, setData] = useState(null);
   const [filteredData, setFilteredData] = useState(null);
   const { pathname } = useLocation();
-
+  const baseUrl = "https://dummyjson.com/products";
+  const { data, loading, error, createItem, updateItem, deleteItem } =
+    useCrud(baseUrl);
   const ProductPathname = pathname === "/search-product";
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
-  useEffect(() => {
-    const getData = async () => {
-      const data = await axios.get("https://dummyjson.com/products");
-      const card = await data.data.products;
-      setData(card);
-      setFilteredData(card);
-    };
-    getData();
-  }, []);
-  const handleSearch = (term) => {
-    const filteredProducts = data.filter(
-      (product) =>
-        product.title.toLowerCase().includes(term.toLowerCase()) ||
-        product.brand.toLowerCase().includes(term.toLowerCase())
-    );
-
-    setFilteredData(filteredProducts);
+  if (error) {
+    return <p>Error: {error.message}</p>;
+  }
+  const handleSearch = async (term) => {
+    try {
+      const response = await axios.get(`${baseUrl}/search?q=${term}`);
+      setFilteredData(response.data.products);
+    } catch (error) {
+      console.error("Search error:", error);
+    }
   };
   return (
     <>
@@ -102,35 +100,19 @@ const AllPRoducts = () => {
       ) : (
         <Title>All Products</Title>
       )}
-      <SearchProduct onSearch={handleSearch} />
+      {ProductPathname && <SearchProduct onSearch={handleSearch} />}
       <Content>
-        {filteredData &&
-          filteredData.map((product, index) => (
-            <Product d={product} key={index} />
-          ))}
+        {filteredData
+          ? filteredData.map((product, index) => (
+              <Product d={product} key={index} />
+            ))
+          : data.products.map((product, index) => (
+              <Product d={product} key={index} />
+            ))}
       </Content>
     </>
   );
 };
-
-export function Product({ d }) {
-  const image = d.images[0];
-  return (
-    <Card>
-      <ImgDiv>
-        <CardImg src={image} alt={d.title} />
-      </ImgDiv>
-      <DivPRice>
-        <Name>{d.title}</Name>
-        <Brand>{d.brand}</Brand>
-      </DivPRice>
-      <DivPRice>
-        <Price>{d.price} $</Price>
-        <Discount>{d.discountPercentage}</Discount>
-      </DivPRice>
-    </Card>
-  );
-}
 
 export function SearchProduct({ onSearch }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -150,6 +132,25 @@ export function SearchProduct({ onSearch }) {
         onChange={handleSearch}
       />
     </SearchFrom>
+  );
+}
+
+export function Product({ d }) {
+  const image = d.images[0];
+  return (
+    <Card>
+      <ImgDiv>
+        <CardImg src={image} alt={d.title} />
+      </ImgDiv>
+      <DivPRice>
+        <Name>{d.title}</Name>
+        <Brand>{d.brand}</Brand>
+      </DivPRice>
+      <DivPRice>
+        <Price>{d.price} $</Price>
+        <Discount>{d.discountPercentage}</Discount>
+      </DivPRice>
+    </Card>
   );
 }
 
